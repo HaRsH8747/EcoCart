@@ -109,11 +109,6 @@ def place_order(request, total=0, quantity=0):
             data.ip = request.META.get('REMOTE_ADDR')
             data.save()
 
-            # order_number generator
-            # yr = int(datetime.date.today().strftime('%y'))
-            # dt = int(datetime.date.today().strftime('%d'))
-            # mt = int(datetime.date.today().strftime('%m'))
-            # d = datetime.date(yr, mt, dt)
             current_date = datetime.date.today().strftime('%Y%m%d')  # 20210615
             order_number = current_date + str(data.id)  # 20210615+id
             data.order_number = order_number

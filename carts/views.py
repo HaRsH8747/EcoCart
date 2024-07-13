@@ -1,12 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from store.models import Product, Variation
+from store.models import Product
 from .models import Cart, CartItem
 from django.core.exceptions import ObjectDoesNotExist
 
 
-# usa a session id para criar o carrinho
+# use a session id to create the cart
 def _cart_id(request):  # private function
     cart = request.session.session_key
     if not cart:
@@ -14,75 +14,29 @@ def _cart_id(request):  # private function
     return cart
 
 
-def add_cart(request, product_id):  # adiciona item ao carrinho e adiciona quantidade
-    current_user = request.user  # pega da requisição o usuario logado
-    product = Product.objects.get(id=product_id)  # pega o produto pelo id
+def add_cart(request, product_id):  # add item to cart and increment quantity
+    current_user = request.user  # get the logged-in user from the request
+    product = Product.objects.get(id=product_id)  # get the product by id
 
     # add to cart if the user is authenticated
     if current_user.is_authenticated:
-        product_variation = []
-        if request.method == 'POST':
-            for item in request.POST:
-                key = item
-                value = request.POST[key]
-                try:
-                    variation = Variation.objects.get(product=product,
-                                                      variation_category__iexact=key,
-                                                      variation_value__iexact=value)
-                    product_variation.append(variation)
-                except:
-                    pass
-
         is_cart_item_exists = CartItem.objects.filter(product=product, user=current_user).exists()
         if is_cart_item_exists:
-            cart_item = CartItem.objects.filter(product=product, user=current_user)
-            ex_var_list = []
-            id = []
-            for item in cart_item:
-                existing_variation = item.variations.all()
-                ex_var_list.append(list(existing_variation))
-                id.append(item.id)
-            if product_variation in ex_var_list:
-                index = ex_var_list.index(product_variation)
-                item_id = id[index]
-                item = CartItem.objects.get(product=product, id=item_id)
-                item.quantity += 1
-                item.save()
-            else:
-                item = CartItem.objects.create(product=product, quantity=1, user=current_user)
-                if len(product_variation) > 0:
-                    item.variations.clear()
-                    item.variations.add(*product_variation)
-                item.save()
+            cart_item = CartItem.objects.get(product=product, user=current_user)
+            cart_item.quantity += 1
+            cart_item.save()
         else:
-            cart_item = CartItem.objects.create(
+            CartItem.objects.create(
                 product=product,
                 quantity=1,
                 user=current_user
             )
-            if len(product_variation) > 0:
-                cart_item.variations.clear()
-                cart_item.variations.add(*product_variation)
-            cart_item.save()
         return redirect('cart')
 
     # add to cart if user is not authenticated
     else:
-        product_variation = []
-        if request.method == 'POST':
-            for item in request.POST:
-                key = item
-                value = request.POST[key]
-                try:
-                    variation = Variation.objects.get(product=product,
-                                                      variation_category__iexact=key,
-                                                      variation_value__iexact=value)
-                    product_variation.append(variation)
-                except:
-                    pass
-        # product = Product.objects.get(id=product_id)  # pega o produto pelo id
         try:
-            cart = Cart.objects.get(cart_id=_cart_id(request))  # busca o carrinho pela session da request
+            cart = Cart.objects.get(cart_id=_cart_id(request))  # fetch the cart by session id
         except Cart.DoesNotExist:
             cart = Cart.objects.create(
                 cart_id=_cart_id(request)
@@ -91,42 +45,19 @@ def add_cart(request, product_id):  # adiciona item ao carrinho e adiciona quant
 
         is_cart_item_exists = CartItem.objects.filter(product=product, cart=cart).exists()
         if is_cart_item_exists:
-            cart_item = CartItem.objects.filter(product=product, cart=cart)
-            ex_var_list = []  # existing variation list
-            id = []  # id list of the variations
-            for item in cart_item:
-                existing_variation = item.variations.all()
-                ex_var_list.append(list(existing_variation))
-                id.append(item.id)
-            print(ex_var_list)
-            if product_variation in ex_var_list:
-                # increase cart item quantity
-                index = ex_var_list.index(product_variation)
-                item_id = id[index]
-                item = CartItem.objects.get(product=product, id=item_id)
-                item.quantity += 1  # soma 1 na quantidade de produto
-                item.save()
-            else:
-                # create new cart item
-                item = CartItem.objects.create(product=product, quantity=1, cart=cart)
-                if len(product_variation) > 0:
-                    item.variations.clear()
-                    item.variations.add(*product_variation)
-                item.save()
+            cart_item = CartItem.objects.get(product=product, cart=cart)
+            cart_item.quantity += 1  # increment the product quantity
+            cart_item.save()
         else:
-            cart_item = CartItem.objects.create(
+            CartItem.objects.create(
                 product=product,
                 quantity=1,
                 cart=cart
             )
-            if len(product_variation) > 0:
-                cart_item.variations.clear()
-                cart_item.variations.add(*product_variation)
-            cart_item.save()
         return redirect('cart')
 
 
-def remove_cart(request, product_id, cart_item_id):  # diminui a quantidade no carrinho
+def remove_cart(request, product_id, cart_item_id):  # decrement the quantity in the cart
     product = get_object_or_404(Product, id=product_id)
     try:
         if request.user.is_authenticated:
@@ -144,7 +75,7 @@ def remove_cart(request, product_id, cart_item_id):  # diminui a quantidade no c
     return redirect('cart')
 
 
-def remove_cart_item(request, product_id, cart_item_id):  # remove o item do carrinho
+def remove_cart_item(request, product_id, cart_item_id):  # remove the item from the cart
     product = get_object_or_404(Product, id=product_id)
     if request.user.is_authenticated:
         cart_item = CartItem.objects.get(product=product, user=request.user, id=cart_item_id)
@@ -167,16 +98,17 @@ def cart(request, total=0, quantity=0, cart_items=None):
         for cart_item in cart_items:
             total += cart_item.product.price * cart_item.quantity
             quantity += cart_item.quantity
-        tax = (2*total)/100  # aplicar regra de imposto correta aki
+        tax = (2 * total) / 100  # apply the correct tax rule here
         grand_total = total + tax
     except ObjectDoesNotExist:
-        pass  # ignora
-    context = {'total': total,
-               'quantity': quantity,
-               'cart_items': cart_items,
-               'tax': tax,
-               'grand_total': grand_total,
-               }
+        pass  # ignore
+    context = {
+        'total': total,
+        'quantity': quantity,
+        'cart_items': cart_items,
+        'tax': tax,
+        'grand_total': grand_total,
+    }
     return render(request, 'store/cart.html', context)
 
 
@@ -185,22 +117,19 @@ def checkout(request, total=0, quantity=0, cart_items=None):
     tax = 0
     grand_total = 0
     try:
-        if request.user.is_authenticated:
-            cart_items = CartItem.objects.filter(user=request.user, is_active=True)
-        else:
-            cart = Cart.objects.get(cart_id=_cart_id(request))
-            cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        cart_items = CartItem.objects.filter(user=request.user, is_active=True)
         for cart_item in cart_items:
             total += cart_item.product.price * cart_item.quantity
             quantity += cart_item.quantity
-        tax = (2 * total) / 100  # aplicar regra de imposto correta aki
+        tax = (2 * total) / 100  # apply the correct tax rule here
         grand_total = total + tax
     except ObjectDoesNotExist:
-        pass  # ignora
-    context = {'total': total,
-               'quantity': quantity,
-               'cart_items': cart_items,
-               'tax': tax,
-               'grand_total': grand_total,
-               }
+        pass  # ignore
+    context = {
+        'total': total,
+        'quantity': quantity,
+        'cart_items': cart_items,
+        'tax': tax,
+        'grand_total': grand_total,
+    }
     return render(request, 'store/checkout.html', context)
