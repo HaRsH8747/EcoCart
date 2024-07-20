@@ -14,6 +14,7 @@ urlpatterns = [
     path('store/', include(store_urls)),
     path('accounts/', include(accounts_urls)),
     path('admin/', admin.site.urls),
-    # path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
-    path('', views.home, name='home')
+    path('', views.home, name='home'),
+    path('about/', views.about, name='about'),
+    path('contact/', views.contact, name='contact'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

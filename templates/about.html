@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+    <div class="container">
+        <header class="section-heading">
+            <h2>About Us</h2>
+            <p>Welcome to Green Marketplace! We are dedicated to promoting eco-friendly shopping and fostering a community focused on green living.</p>
+        </header>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h4>About Green Marketplace</h4>
+                <p>The Green Marketplace is an online platform dedicated to promoting eco-friendly shopping. This innovative marketplace connects buyers and sellers of environmentally sustainable products, fostering a community focused on green living. The platform allows users to buy, sell, and trade a wide range of eco-friendly items such as reusable goods, sustainable fashion, organic products, and more.</p>
+                <p>Built using Django, Python, and PyCharm, the Green Marketplace offers robust user authentication features, including login, logout, and password recovery. Registered users can list items for sale, upload product images, and provide detailed descriptions, while unregistered users can browse the listings with limited access. An intuitive search bar enables users to find products by category, price range, and keywords, enhancing the shopping experience.</p>
+                <p>To ensure a seamless user experience, the Green Marketplace employs a visually appealing design with responsive layouts using Bootstrap. The database is managed in JSON format, with initial data loaded through fixtures. Class-based views streamline the code structure, and regular progress is tracked and managed via GitHub. Additional features include user ratings, reviews, and wish list.</p>
+                <p>The Green Marketplace not only facilitates sustainable shopping but also educates and empowers users to make environmentally conscious choices, contributing to a greener future. This project demonstrates a commitment to environmental sustainability and leverages modern web development tools and practices.</p>
+
+                <h4>Our Team</h4>
+                <div class="row">
+                    {% for member in team_members %}
+                        <div class="col-md-3 text-center">
+                            <img src="{{ member.image }}" alt="{{ member.name }}" class="rounded-lg" style="width: 225px; height: 270px;">
+                            <h5>{{ member.name }}</h5>
+                            <p>{{ member.role }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
