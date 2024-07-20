@@ -8,7 +8,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-
 from .forms import RegistrationForm, UserForm, UserProfileForm
 from .models import Account, UserProfile
 from carts.models import Cart, CartItem
