@@ -8,6 +8,7 @@ from carts.models import CartItem
 from orders.models import OrderProduct
 from carts.views import _cart_id
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.http import JsonResponse
 
 
 def store(request, category_slug=None):
@@ -99,3 +100,13 @@ def submit_review(request, product_id):
                 data.save()
                 messages.success(request, 'Thanks! Your review been submitted')
                 return redirect(url)
+
+def search_suggestions(request):
+    query = request.GET.get('q', '')
+    if query:
+        products = Product.objects.filter(product_name__icontains=query)
+    else:
+        products = Product.objects.all()
+
+    results = [{'id': product.id, 'name': product.product_name, 'price': product.price} for product in products]
+    return JsonResponse({'products': results})

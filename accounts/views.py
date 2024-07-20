@@ -15,7 +15,8 @@ from carts.models import Cart, CartItem
 from orders.models import Order, OrderProduct
 from carts.views import _cart_id
 import requests
-
+from .models import UserActivity, PageVisit
+from django.utils.timezone import now, timedelta
 
 def register(request):
     if request.method == 'POST':
@@ -61,7 +62,6 @@ def register(request):
     }
     return render(request, 'accounts/register.html', context)
 
-
 def login(request):
     if request.method == 'POST':
         email = request.POST['email']
@@ -85,13 +85,11 @@ def login(request):
             return redirect('login')
     return render(request, 'accounts/login.html')
 
-
 @login_required(login_url='login')
 def logout(request):
     auth.logout(request)
     messages.success(request, 'You are logged out.')
     return redirect('login')
-
 
 def activate(request, uidb64, token):
     try:
@@ -108,15 +106,19 @@ def activate(request, uidb64, token):
         messages.error(request, 'Invalid activation link')
         return redirect('register')
 
-
 @login_required(login_url='login')
 def dashboard(request):
     orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
     orders_count = orders.count()
     userprofile = UserProfile.objects.get(user_id=request.user.id)
+    active_threshold = now() - timedelta(minutes=5)
+    active_users = UserActivity.objects.filter(last_activity__gte=active_threshold).count()
+    total_visits = PageVisit.objects.count()
     context = {
         'orders_count': orders_count,
         'userprofile': userprofile,
+        'active_users': active_users,
+        'total_visits': total_visits,
     }
     return render(request, 'accounts/dashboard.html', context)
 

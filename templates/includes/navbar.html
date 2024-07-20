@@ -52,12 +52,13 @@
                     <form action="{% url 'search' %}" class="search" method="GET">
                         <div class="input-group w-100">
                             <input type="text" class="form-control"
-                                   style="width:60%;" placeholder="Search" name="keyword">
-                            <div class="input-group-append">
+                                   style="width:60%;" id="search-bar" placeholder="Search" name="keyword">
+                            <!-- <div class="input-group-append">
                                 <button class="btn btn-primary" type="submit">
                                     <i class="fa fa-search"></i>
                                 </button>
-                            </div>
+                            </div> -->
+                            <div id="suggestions"></div>
                         </div>
                     </form> <!-- search-wrap .end// -->
 
@@ -91,3 +92,37 @@
         </div> <!-- container.// -->
     </section> <!-- header-main .// -->
 </header> <!-- section-header.// -->
+<script>
+    document.getElementById('search-bar').addEventListener('input', function () {
+        let query = this.value;
+        if (query.length > 2) {
+            fetch(`/store/search_suggestions/?q=${query}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let suggestions = document.getElementById('suggestions');
+                    suggestions.innerHTML = '';
+                    let products = data.products;
+                    if (products.length > 0) {
+                        suggestions.style.display = 'block';
+                        products.forEach(product => {
+                            let div = document.createElement('div');
+                            div.textContent = `${product.name} - $${product.price}`;
+                            div.addEventListener('click', function () {
+                                document.getElementById('search-bar').value = product.name;
+                                suggestions.style.display = 'none';
+                            });
+                            suggestions.appendChild(div);
+                        });
+                    } else {
+                        suggestions.style.display = 'none';
+                    }
+                });
+        } else {
+            document.getElementById('suggestions').style.display = 'none';
+        }
+    });
+</script>

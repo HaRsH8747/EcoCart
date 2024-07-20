@@ -13,7 +13,6 @@ urlpatterns = [
     path('cart/', include(carts_urls)),
     path('store/', include(store_urls)),
     path('accounts/', include(accounts_urls)),
-    path('securelogin/', admin.site.urls),
     path('admin/', admin.site.urls),
     # path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
     path('', views.home, name='home')

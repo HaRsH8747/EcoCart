@@ -22,8 +22,6 @@ class RegistrationForm(forms.ModelForm):
         self.fields['last_name'].widget.attrs['placeholder'] = 'Enter last name'
         self.fields['phone_number'].widget.attrs['placeholder'] = 'Enter phone number'
         self.fields['email'].widget.attrs['placeholder'] = 'Enter email address'
-
-        # percorre todos os fields e adiciona a classe bootstrap em todos os fields declarados em Meta
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
